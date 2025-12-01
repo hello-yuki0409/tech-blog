@@ -1,22 +1,8 @@
 {
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
   "hosting": {
-    "site": "YOUR_SITE_ID",
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "cleanUrls": true,
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "nextServer"
-      }
-    ]
+    "source": ".",
+    "frameworksBackend": {
+      "region": "asia-east1"
+    }
   }
 }

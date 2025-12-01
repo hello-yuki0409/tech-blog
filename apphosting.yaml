@@ -1,0 +1,6 @@
+runConfig:
+  region: asia-east1
+  minInstances: 0
+  maxInstances: 1
+  cpu: 1
+  memoryMiB: 512
