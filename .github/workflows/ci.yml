@@ -66,4 +66,5 @@ jobs:
       - name: Deploy to Firebase Hosting + Functions
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
         run: firebase deploy --only hosting,functions --token "$FIREBASE_TOKEN"
