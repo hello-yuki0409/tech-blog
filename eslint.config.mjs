@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Firebase Functions 用にコピーした Next のビルド成果物は lint 対象外
+    "functions/.next/**",
+    // Firebase CLI が生成するキャッシュ/配信用ビルドも lint 対象外
+    ".firebase/**",
   ]),
 ]);
 
