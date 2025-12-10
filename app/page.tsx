@@ -1,10 +1,11 @@
-import Title from "./components/Title";
+import { sampleArticles } from "./data/sampleArticles";
 
 export default function Home() {
   return (
-    <div>
-      <Title text="Hello world!" />
-      <h1>個人記事一覧</h1>
-    </div>
+   <ul>
+      {sampleArticles.map((item) => (
+        <li key={item.url}>{item.title}</li>
+      ))}
+    </ul>
   );
 }
