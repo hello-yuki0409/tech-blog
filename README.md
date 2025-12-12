@@ -3,5 +3,5 @@
 ## ネクストアクション
 
 1. [x] CI/CD 構築する
-2. [ ] QiitaAPI を Curl コマンドで叩く
+2. [x] QiitaAPI を Curl コマンドで叩く
 3. [ ] 記事取得用 API 作成？する
