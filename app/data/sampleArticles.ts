@@ -1,4 +1,4 @@
-type Article = {
+export type Article = {
   title: string;
   date: string; // ISO or YYYY-MM-DD
   url: string;
