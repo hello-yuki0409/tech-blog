@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "./data/sampleArticles";
 import { sampleArticles } from "./data/sampleArticles";
@@ -56,9 +57,11 @@ export default async function Home() {
           {articles.map((item) => (
             <div key={item.url} className="card w-full bg-base-100 shadow-xl">
               <figure>
-                <img
+                <Image
                   src={item.thumbnail}
                   alt={item.title}
+                  width={600}
+                  height={300}
                   className="h-48 w-full object-cover"
                 />
               </figure>
