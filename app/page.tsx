@@ -1,47 +1,49 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "./data/sampleArticles";
+import { useEffect, useState } from "react";
 import { sampleArticles } from "./data/sampleArticles";
 
-const API_URL =
-  "https://qiita.com/api/v2/authenticated_user/items?page=1&per_page=4";
-const FALLBACK_THUMBNAIL =
-  "https://cdn.qiita.com/assets/public/article-ogp-background-9f5428127621718a910c8b63951390ad.png";
+const PAGE_SIZE = 6;
 
-type QiitaItem = {
-  title: string;
-  url: string;
-  created_at: string;
-};
+export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-async function fetchQiitaArticles(): Promise<Article[]> {
-  const token = process.env.QIITA_TOKEN;
-  if (!token) return sampleArticles;
-
-  try {
-    const res = await fetch(API_URL, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      return sampleArticles;
+  const load = async (nextPage: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/qiita?per_page=${PAGE_SIZE}&page=${nextPage}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch Qiita articles");
+      }
+      const data = (await res.json()) as Article[];
+      setArticles((prev) => [...prev, ...data]);
+      setHasMore(data.length === PAGE_SIZE);
+      setPage(nextPage);
+    } catch (error) {
+      console.error(error);
+      // フォールバックとしてサンプルデータを表示
+      if (articles.length === 0) {
+        setArticles(sampleArticles);
+        setHasMore(false);
+      }
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const items = (await res.json()) as QiitaItem[];
-    return items.slice(0, 4).map((item) => ({
-      title: item.title,
-      date: item.created_at,
-      url: item.url,
-      thumbnail: FALLBACK_THUMBNAIL,
-    }));
-  } catch (error) {
-    console.error("Failed to fetch Qiita articles", error);
-    return sampleArticles;
-  }
-}
-
-export default async function Home() {
-  const articles = await fetchQiitaArticles();
+  useEffect(() => {
+    load(1);
+  }, []);
 
   return (
     <main className="min-h-screen bg-base-200">
@@ -84,6 +86,18 @@ export default async function Home() {
             </div>
           ))}
         </div>
+
+        {hasMore && (
+          <div className="mt-8 flex justify-center">
+            <button
+              className="btn btn-outline"
+              onClick={() => load(page + 1)}
+              disabled={loading}
+            >
+              {loading ? "読み込み中..." : "もっとみる"}
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );
