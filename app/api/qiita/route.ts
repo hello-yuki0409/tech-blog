@@ -55,25 +55,3 @@ export async function GET(req: Request) {
 
   return NextResponse.json(articles);
 }
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: `Qiita API error: ${res.status}` },
-      { status: 500 },
-    );
-  }
-
-  const items = (await res.json()) as QiitaItem[];
-
-  const articles = items.slice(0, 4).map((item) => ({
-    title: item.title,
-    date: item.created_at,
-    url: item.url,
-    thumbnail: FALLBACK_THUMBNAIL,
-  }));
-
-  return NextResponse.json(articles);
-}
