@@ -31,7 +31,7 @@ export default function Home() {
       setPage(nextPage);
     } catch (error) {
       console.error(error);
-      // フォールバックとしてサンプルデータを表示
+      // フォールバックとしてサンプルデータを表示する
       if (articles.length === 0) {
         setArticles(sampleArticles);
         setHasMore(false);
@@ -41,6 +41,7 @@ export default function Home() {
     }
   };
 
+  // サーバー側で取得して props で渡すより楽かな？
   useEffect(() => {
     load(1);
   }, []);
