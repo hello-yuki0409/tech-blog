@@ -10,10 +10,10 @@ import { sampleArticles } from "./data/sampleArticles";
 const PAGE_SIZE = 6;
 
 export default function Home() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [articles, setArticles] = useState<Article[]>([]); // 表示中の記事リスト
+  const [page, setPage] = useState(1); // 現在のページ（もっとみるで増やす）
+  const [loading, setLoading] = useState(false); // フェッチ中かどうか
+  const [hasMore, setHasMore] = useState(true); // 追加取得できるか
 
   const load = async (nextPage: number) => {
     setLoading(true);
@@ -31,7 +31,7 @@ export default function Home() {
       setPage(nextPage);
     } catch (error) {
       console.error(error);
-      // フォールバックとしてサンプルデータを表示する
+      // API が落ちたときはサンプルデータでフォールバック
       if (articles.length === 0) {
         setArticles(sampleArticles);
         setHasMore(false);
@@ -41,7 +41,7 @@ export default function Home() {
     }
   };
 
-  // サーバー側で取得して props で渡すより楽かな？
+  // 初回マウント時に1ページ目を取得
   useEffect(() => {
     load(1);
   }, []);
