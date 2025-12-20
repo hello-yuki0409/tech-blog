@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -50,9 +49,9 @@ export default function Home() {
     <main className="min-h-screen bg-base-200">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Qiita 記事一覧</h1>
+          <h1 className="text-2xl font-bold">社員記事一覧</h1>
           <p className="text-sm text-base-content/70">
-            Qiita API から取得した記事（最大4件）を DaisyUI のカードで表示しています。
+            Qiita API から取得した記事一覧
           </p>
         </div>
 
