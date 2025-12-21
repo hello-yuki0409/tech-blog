@@ -1,50 +1,39 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "./data/sampleArticles";
-import { useEffect, useState } from "react";
 import { sampleArticles } from "./data/sampleArticles";
 
 const PAGE_SIZE = 6;
 
-export default function Home() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+// サーバー側で記事を取得（失敗時はサンプルにフォールバック）
+async function fetchArticles(page: number): Promise<Article[]> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
 
-  const load = async (nextPage: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/qiita?per_page=${PAGE_SIZE}&page=${nextPage}`,
-        { cache: "no-store" },
-      );
-      if (!res.ok) {
-        throw new Error("Failed to fetch Qiita articles");
-      }
-      const data = (await res.json()) as Article[];
-      setArticles((prev) => [...prev, ...data]);
-      setHasMore(data.length === PAGE_SIZE);
-      setPage(nextPage);
-    } catch (error) {
-      console.error(error);
-      // フォールバックとしてサンプルデータを表示する
-      if (articles.length === 0) {
-        setArticles(sampleArticles);
-        setHasMore(false);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/qiita?per_page=${PAGE_SIZE}&page=${page}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return sampleArticles;
+    return (await res.json()) as Article[];
+  } catch (error) {
+    console.error("Failed to fetch articles", error);
+    return sampleArticles;
+  }
+}
 
-  // サーバー側で取得して props で渡すより楽かな？
-  useEffect(() => {
-    load(1);
-  }, []);
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: { page?: string };
+}) {
+  const currentPage = Math.max(Number(searchParams?.page) || 1, 1);
+  const articles = await fetchArticles(currentPage);
+  const hasMore = articles.length === PAGE_SIZE; // ページサイズ未満なら次ページなしと判定
 
   return (
     <main className="min-h-screen bg-base-200">
@@ -52,7 +41,7 @@ export default function Home() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Qiita 記事一覧</h1>
           <p className="text-sm text-base-content/70">
-            Qiita API から取得した記事（最大4件）を DaisyUI のカードで表示しています。
+            Qiita API から取得した記事を DaisyUI のカードで表示しています。
           </p>
         </div>
 
@@ -90,13 +79,12 @@ export default function Home() {
 
         {hasMore && (
           <div className="mt-8 flex justify-center">
-            <button
+            <Link
+              href={`/?page=${currentPage + 1}`}
               className="btn btn-outline"
-              onClick={() => load(page + 1)}
-              disabled={loading}
             >
-              {loading ? "読み込み中..." : "もっとみる"}
-            </button>
+              もっとみる
+            </Link>
           </div>
         )}
       </div>
