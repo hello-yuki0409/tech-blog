@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 
+const FALLBACK_THUMBNAIL =
+  "https://cdn.qiita.com/assets/public/article-ogp-background-9f5428127621718a910c8b63951390ad.png";
+
 export const dynamic = "force-dynamic";
+
+type MicroCMSContent = {
+  id: string;
+  title?: string;
+  publishedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  thumbnail?: { url?: string };
+  eyecatch?: { url?: string };
+};
 
 export async function GET(req: Request) {
   const serviceDomain = process.env.MICROCMS_SERVICE_DOMAIN;
@@ -36,5 +49,25 @@ export async function GET(req: Request) {
   }
 
   const data = await res.json();
-  return NextResponse.json(data);
+  const contents: MicroCMSContent[] = Array.isArray(data.contents)
+    ? data.contents
+    : [];
+
+  const articles = contents.map((item) => ({
+    id: item.id,
+    title: item.title ?? "(no title)",
+    date:
+      item.publishedAt ||
+      item.updatedAt ||
+      item.createdAt ||
+      new Date().toISOString(),
+    url: `/blogs/${item.id}`,
+    thumbnail:
+      item.thumbnail?.url || item.eyecatch?.url || FALLBACK_THUMBNAIL,
+  }));
+
+  return NextResponse.json({
+    articles,
+    totalCount: data.totalCount ?? articles.length,
+  });
 }
