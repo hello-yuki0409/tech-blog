@@ -54,7 +54,7 @@ export default async function Blogs() {
           {articles.map((item) => (
             <div
               key={item.id ?? item.url}
-              className="card w-full bg-base-100 shadow-xl"
+              className="card w-full bg-base-100 shadow-xl hover:cursor-pointer"
             >
               <figure>
                 <Image
