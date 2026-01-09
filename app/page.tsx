@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import type { Article } from "./data/sampleArticles";
 import { sampleArticles } from "./data/sampleArticles";
 
@@ -7,11 +8,17 @@ const PAGE_SIZE = 6;
 
 // サーバー側で Qiita 記事を取得（失敗時はサンプルにフォールバック）
 async function fetchArticles(): Promise<Article[]> {
+  const headerList = await headers();
+  const host =
+    headerList.get("x-forwarded-host") || headerList.get("host") || "";
+  const proto = headerList.get("x-forwarded-proto") || "http";
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+      : host
+        ? `${proto}://${host}`
+        : "http://localhost:3000");
 
   try {
     const res = await fetch(
@@ -65,20 +72,14 @@ export default async function Home() {
                   {new Date(item.date).toLocaleDateString()}
                 </p>
                 <div className="card-actions justify-end">
-                  {item.id ? (
-                    <Link href={`/blogs/${item.id}`} className="btn btn-primary">
-                      記事を読む
-                    </Link>
-                  ) : (
-                    <Link
-                      href={item.url}
-                      className="btn btn-primary"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      記事を読む
-                    </Link>
-                  )}
+                  <Link
+                    href={item.url}
+                    className="btn btn-primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    記事を読む
+                  </Link>
                 </div>
               </div>
             </div>
