@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 type QiitaItem = {
+  id: string;
   title: string;
   url: string;
   created_at: string;
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
   const items = (await res.json()) as QiitaItem[];
 
   const articles = items.slice(0, perPage).map((item) => ({
+    id: item.id,
     title: item.title,
     date: item.created_at,
     url: item.url,

@@ -1,42 +1,35 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 const FALLBACK_THUMBNAIL =
   "https://cdn.qiita.com/assets/public/article-ogp-background-9f5428127621718a910c8b63951390ad.png";
 
-type BlogDetail = {
+type QiitaDetail = {
   id: string;
   title?: string;
-  publishedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  content?: string;
+  rendered_body?: string;
   body?: string;
-  eyecatch?: { url?: string };
-  thumbnail?: { url?: string };
+  created_at?: string;
+  updated_at?: string;
+  url?: string;
 };
 
-async function fetchBlog(id: string): Promise<BlogDetail | null> {
-  const serviceDomain = process.env.MICROCMS_SERVICE_DOMAIN;
-  const apiKey = process.env.MICROCMS_API_KEY;
-  const endpoint = process.env.MICROCMS_ENDPOINT || "blogs";
+async function fetchQiitaArticle(id: string): Promise<QiitaDetail | null> {
+  const token = process.env.QIITA_TOKEN;
+  const headers: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
 
-  if (!serviceDomain || !apiKey) {
-    return null;
-  }
-
-  const res = await fetch(
-    `https://${serviceDomain}/api/v1/${endpoint}/${id}`,
-    {
-      headers: { "X-MICROCMS-API-KEY": apiKey },
-      cache: "no-store",
-    },
-  );
+  const res = await fetch(`https://qiita.com/api/v2/items/${id}`, {
+    headers,
+    cache: "no-store",
+  });
 
   if (!res.ok) {
     return null;
   }
 
-  return (await res.json()) as BlogDetail;
+  return (await res.json()) as QiitaDetail;
 }
 
 export default async function BlogDetailPage({
@@ -44,18 +37,15 @@ export default async function BlogDetailPage({
 }: {
   params: { id: string };
 }) {
-  const detail = await fetchBlog(params.id);
+  const detail = await fetchQiitaArticle(params.id);
 
   if (!detail) {
     notFound();
   }
 
   const title = detail?.title ?? "(no title)";
-  const date =
-    detail?.publishedAt || detail?.updatedAt || detail?.createdAt || "";
-  const html = detail?.content || detail?.body || "";
-  const thumbnail =
-    detail?.eyecatch?.url || detail?.thumbnail?.url || FALLBACK_THUMBNAIL;
+  const date = detail?.created_at || detail?.updated_at || "";
+  const html = detail?.rendered_body || detail?.body || "";
 
   return (
     <main className="min-h-screen bg-base-200">
@@ -68,9 +58,11 @@ export default async function BlogDetailPage({
         </div>
 
         <div className="mb-6">
-          <img
-            src={thumbnail}
+          <Image
+            src={FALLBACK_THUMBNAIL}
             alt={title}
+            width={1200}
+            height={630}
             className="w-full rounded-lg object-cover"
           />
         </div>

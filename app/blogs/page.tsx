@@ -3,40 +3,42 @@ import Link from "next/link";
 import type { Article } from "../data/sampleArticles";
 import { sampleArticles } from "../data/sampleArticles";
 
-const PAGE_SIZE = 100; // 一覧は最大100件までまとめて取得
+const PAGE_SIZE = 100; // Qiita API の上限
+const MAX_PAGES = 10; // 念のための上限（最大1000件）
 
-async function fetchArticles(page: number): Promise<Article[]> {
+async function fetchAllArticles(): Promise<Article[]> {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000");
 
-  try {
+  const all: Article[] = [];
+
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
     const res = await fetch(
-      `${baseUrl}/api/microcms?per_page=${PAGE_SIZE}&page=${page}`,
+      `${baseUrl}/api/qiita?per_page=${PAGE_SIZE}&page=${page}`,
       { cache: "no-store" },
     );
-    if (!res.ok) return sampleArticles;
-    const data = await res.json();
-    if (Array.isArray(data.articles)) {
-      return data.articles as Article[];
+    if (!res.ok) {
+      return sampleArticles;
     }
-    return sampleArticles;
-  } catch (error) {
-    console.error("Failed to fetch microCMS articles", error);
-    return sampleArticles;
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      return sampleArticles;
+    }
+    const batch = data as Article[];
+    all.push(...batch);
+    if (batch.length < PAGE_SIZE) {
+      break;
+    }
   }
+
+  return all.length > 0 ? all : sampleArticles;
 }
 
-export default async function Blogs({
-  searchParams,
-}: {
-  searchParams?: { page?: string };
-}) {
-  const currentPage = Math.max(Number(searchParams?.page) || 1, 1);
-  const articles = await fetchArticles(currentPage);
-  const hasMore = articles.length === PAGE_SIZE;
+export default async function Blogs() {
+  const articles = await fetchAllArticles();
 
   return (
     <main className="min-h-screen bg-base-200">
@@ -44,13 +46,16 @@ export default async function Blogs({
         <div className="mb-6">
           <h1 className="text-2xl font-bold">ブログ一覧</h1>
           <p className="text-sm text-base-content/70">
-            microCMS から取得した記事を表示しています。
+            Qiita の全記事を一覧表示しています。
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((item) => (
-            <div key={item.url || item.id} className="card w-full bg-base-100 shadow-xl">
+            <div
+              key={item.id ?? item.url}
+              className="card w-full bg-base-100 shadow-xl"
+            >
               <figure>
                 <Image
                   src={item.thumbnail}
@@ -66,22 +71,25 @@ export default async function Blogs({
                   {new Date(item.date).toLocaleDateString()}
                 </p>
                 <div className="card-actions justify-end">
-                  <Link href={`/blogs/${item.id}`} className="btn btn-primary">
-                    記事を読む
-                  </Link>
+                  {item.id ? (
+                    <Link href={`/blogs/${item.id}`} className="btn btn-primary">
+                      記事を読む
+                    </Link>
+                  ) : (
+                    <Link
+                      href={item.url}
+                      className="btn btn-primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      記事を読む
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        {hasMore && (
-          <div className="mt-8 flex justify-center">
-            <Link href={`/blogs?page=${currentPage + 1}`} className="btn btn-outline">
-              次のページ
-            </Link>
-          </div>
-        )}
       </div>
     </main>
   );
