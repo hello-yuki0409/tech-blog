@@ -35,9 +35,10 @@ async function fetchQiitaArticle(id: string): Promise<QiitaDetail | null> {
 export default async function BlogDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const detail = await fetchQiitaArticle(params.id);
+  const { id } = await params;
+  const detail = await fetchQiitaArticle(id);
 
   if (!detail) {
     notFound();
